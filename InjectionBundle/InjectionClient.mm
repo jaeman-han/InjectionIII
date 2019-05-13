@@ -136,7 +136,7 @@ static struct {
     InjectionCommand command;
     while ((command = (InjectionCommand)[self readInt]) != InjectionEOF) {
         switch (command) {
-        case InjectionVaccineSettingChanged: {
+        case InjectionRuntimeSettingChanged: {
             NSString *string = [self readString];
             NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
             id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
@@ -145,6 +145,8 @@ static struct {
             if (dictionary != nil) {
                 NSNumber *vaccineEnabled = [dictionary valueForKey:@"Enabled Vaccine"];
                 [SwiftEval sharedInstance].vaccineEnabled = [vaccineEnabled boolValue];
+                NSNumber *forceReloadEnabled = [dictionary valueForKey:@"Enabled Force Reload"];
+                [SwiftEval sharedInstance].forceReloadEnabled = [forceReloadEnabled boolValue];
             }
             break;
         }

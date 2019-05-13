@@ -33,7 +33,7 @@ AppDelegate *appDelegate;
 
 @implementation AppDelegate {
     IBOutlet NSMenu *statusMenu;
-    IBOutlet NSMenuItem *startItem, *xprobeItem, *enabledTDDItem, *enableVaccineItem, *windowItem;
+    IBOutlet NSMenuItem *startItem, *xprobeItem, *enabledTDDItem, *enableVaccineItem, *enableForceReloadItem, *windowItem;
     IBOutlet NSStatusItem *statusItem;
 }
 
@@ -54,6 +54,9 @@ AppDelegate *appDelegate;
         ? NSControlStateValueOn
         : NSControlStateValueOff;
     enableVaccineItem.state = ([[NSUserDefaults standardUserDefaults] boolForKey:UserDefaultsVaccineEnabled] == YES)
+        ? NSControlStateValueOn
+        : NSControlStateValueOff;
+    enableForceReloadItem.state = ([[NSUserDefaults standardUserDefaults] boolForKey:UserDefaultsForceReloadEnabled] == YES)
         ? NSControlStateValueOn
         : NSControlStateValueOff;
 
@@ -77,14 +80,26 @@ AppDelegate *appDelegate;
     [self toggleState:sender];
     BOOL newSetting = sender.state == NSControlStateValueOn;
     [[NSUserDefaults standardUserDefaults] setBool:newSetting forKey:UserDefaultsVaccineEnabled];
-    [self.lastConnection writeCommand:InjectionVaccineSettingChanged withString:[appDelegate vaccineConfiguration]];
+    [self.lastConnection writeCommand:InjectionRuntimeSettingChanged withString:[appDelegate runtimeConfiguration]];
 }
 
-- (NSString *)vaccineConfiguration {
+- (IBAction)toggleForceReload:(NSMenuItem *)sender {
+    [self toggleState:sender];
+    BOOL newSetting = sender.state == NSControlStateValueOn;
+    [[NSUserDefaults standardUserDefaults] setBool:newSetting forKey:UserDefaultsForceReloadEnabled];
+    [self.lastConnection writeCommand:InjectionRuntimeSettingChanged withString:[appDelegate runtimeConfiguration]];
+}
+
+- (NSString *)runtimeConfiguration {
     BOOL vaccineSetting = [[NSUserDefaults standardUserDefaults] boolForKey:UserDefaultsVaccineEnabled];
-    NSNumber *value = [NSNumber numberWithBool:vaccineSetting];
-    NSString *key = [NSString stringWithString:UserDefaultsVaccineEnabled];
-    NSDictionary *dictionary = [NSDictionary dictionaryWithObjects:@[value] forKeys:@[key]];
+    NSNumber *vaccineValue = [NSNumber numberWithBool:vaccineSetting];
+    NSString *vaccineKey = [NSString stringWithString:UserDefaultsVaccineEnabled];
+    
+    BOOL forceReloadSetting = [[NSUserDefaults standardUserDefaults] boolForKey:UserDefaultsForceReloadEnabled];
+    NSNumber *forceReloadValue = [NSNumber numberWithBool:forceReloadSetting];
+    NSString *forceReloadKey = [NSString stringWithString:UserDefaultsForceReloadEnabled];
+    
+    NSDictionary *dictionary = @{ vaccineKey: vaccineValue, forceReloadKey: forceReloadValue };
     NSError *err;
     NSData *jsonData = [NSJSONSerialization  dataWithJSONObject:dictionary
                                                         options:0

@@ -10,3 +10,4 @@
 
 NSString *const UserDefaultsTDDEnabled = @"Enabled TDD";
 NSString *const UserDefaultsVaccineEnabled = @"Enabled Vaccine";
+NSString *const UserDefaultsForceReloadEnabled = @"Enabled Force Reload";

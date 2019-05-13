@@ -165,7 +165,7 @@ public class SwiftInjection: NSObject {
         } else {
             var injectedClasses = [AnyClass]()
             for cls in oldClasses {
-                if class_getInstanceMethod(cls, #selector(SwiftInjected.injected)) != nil {
+                if SwiftEval.sharedInstance().forceReloadEnabled || class_getInstanceMethod(cls, #selector(SwiftInjected.injected)) != nil {
                     injectedClasses.append(cls)
                     let kvoName = "NSKVONotifying_" + NSStringFromClass(cls)
                     if let kvoCls = NSClassFromString(kvoName) {

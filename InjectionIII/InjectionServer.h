@@ -33,7 +33,7 @@ typedef NS_ENUM(int, InjectionCommand) {
     InjectionInject,
     InjectionXprobe,
     InjectionEval,
-    InjectionVaccineSettingChanged,
+    InjectionRuntimeSettingChanged,
 
     InjectionEOF = ~0
 };
