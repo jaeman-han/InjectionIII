@@ -15,7 +15,7 @@
 @property (weak) InjectionServer *lastConnection;
 @property NSString *selectedProject;
 
-- (NSString *)runtimeConfiguration;
+- (NSString *)configurations;
 - (void)setMenuIcon:(NSString *)tiffName;
 - (IBAction)openProject:sender;
 

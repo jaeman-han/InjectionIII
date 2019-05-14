@@ -66,8 +66,14 @@ AppDelegate *appDelegate;
                                                             target:self action:@selector(autoInject:) object:nil];
 }
 
-- (IBAction)openProject:sender {
-    [self application:NSApp openFile:nil];
+- (IBAction)openProject:(NSMenuItem *)sender {
+    if (![self application:NSApp openFile:@""]) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert setMessageText:@"Could not find Xcode project files."];
+        [alert setInformativeText:@"Please check the directory."];
+        [alert addButtonWithTitle:@"OK"];
+        [alert runModal];
+    }
 }
 
 - (IBAction)toggleTDD:(NSMenuItem *)sender {
@@ -80,17 +86,17 @@ AppDelegate *appDelegate;
     [self toggleState:sender];
     BOOL newSetting = sender.state == NSControlStateValueOn;
     [[NSUserDefaults standardUserDefaults] setBool:newSetting forKey:UserDefaultsVaccineEnabled];
-    [self.lastConnection writeCommand:InjectionRuntimeSettingChanged withString:[appDelegate runtimeConfiguration]];
+    [self.lastConnection writeCommand:InjectionSetting withString:[appDelegate configurations]];
 }
 
 - (IBAction)toggleForceReload:(NSMenuItem *)sender {
     [self toggleState:sender];
     BOOL newSetting = sender.state == NSControlStateValueOn;
     [[NSUserDefaults standardUserDefaults] setBool:newSetting forKey:UserDefaultsForceReloadEnabled];
-    [self.lastConnection writeCommand:InjectionRuntimeSettingChanged withString:[appDelegate runtimeConfiguration]];
+    [self.lastConnection writeCommand:InjectionSetting withString:[appDelegate configurations]];
 }
 
-- (NSString *)runtimeConfiguration {
+- (NSString *)configurations {
     BOOL vaccineSetting = [[NSUserDefaults standardUserDefaults] boolForKey:UserDefaultsVaccineEnabled];
     NSNumber *vaccineValue = [NSNumber numberWithBool:vaccineSetting];
     NSString *vaccineKey = [NSString stringWithString:UserDefaultsVaccineEnabled];
@@ -104,20 +110,21 @@ AppDelegate *appDelegate;
     NSData *jsonData = [NSJSONSerialization  dataWithJSONObject:dictionary
                                                         options:0
                                                           error:&err];
-    NSString *configuration = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    return configuration;
+    NSString *configurations = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    return configurations;
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename {
     NSOpenPanel *open = [NSOpenPanel new];
     open.prompt = NSLocalizedString(@"Select Project Directory", @"Project Directory");
+    if ([filename length] > 0) {
+        open.directoryURL = [NSURL URLWithString:filename];
+    }
     //    open.allowsMultipleSelection = TRUE;
-    if (filename)
-        open.directory = filename;
     open.canChooseDirectories = TRUE;
     open.canChooseFiles = FALSE;
     //    open.showsHiddenFiles = TRUE;
-    if ([open runModal] == NSFileHandlingPanelOKButton) {
+    if ([open runModal] == NSModalResponseOK) {
         NSArray<NSString *> *fileList = [[NSFileManager defaultManager]
                                          contentsOfDirectoryAtPath:open.URL.path error:NULL];
         if(NSString *projectFile =
@@ -127,10 +134,12 @@ AppDelegate *appDelegate;
             [self.lastConnection setProject:self.selectedProject];
             [[NSDocumentController sharedDocumentController]
              noteNewRecentDocumentURL:open.URL];
-            return TRUE;
+        }
+        else {
+            return FALSE;
         }
     }
-    return FALSE;
+    return TRUE;
 }
 
 - (NSString * _Nullable)fileWithExtension:(NSString * _Nonnull)extension inFiles:(NSArray * _Nonnull)files {

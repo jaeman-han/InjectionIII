@@ -100,7 +100,7 @@ static struct {
 @implementation InjectionClient
 
 + (void)load {
-    // connect to InjetionIII.app using sicket
+    // connect to InjetionIII.app using socket
     if (InjectionClient *client = [self connectTo:INJECTION_ADDRESS])
         [client run];
     else
@@ -136,7 +136,7 @@ static struct {
     InjectionCommand command;
     while ((command = (InjectionCommand)[self readInt]) != InjectionEOF) {
         switch (command) {
-        case InjectionRuntimeSettingChanged: {
+        case InjectionSetting: {
             NSString *string = [self readString];
             NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
             id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
